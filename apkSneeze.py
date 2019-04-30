@@ -15,6 +15,9 @@ def run(command):
         line = process.stdout.readline().rstrip()
         if not line:
             break
+        # return values as the process is executing
+        # instead of waiting for the command to end
+        # so that we know that the command is being executed properly
         yield line
 
 
