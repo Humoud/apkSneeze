@@ -1,4 +1,6 @@
 # apkSneeze
+**v1.0.0**
+
 A tool that automates the mundane tasks of pentesting Android apps. It uses APKTool and Dex2Jar.
 
 The tool currently:
