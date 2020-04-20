@@ -177,8 +177,8 @@ def get_app_data_dir(adbkey_path, device_ip, device_port, package_name):
     ### doesnt allow pulling directories, will execute adb from terminal directly
     # device.pull("/data/local/tmp/apkSneeze/{}/")
     
-    for line in run("adb -s {}:{} pull /data/local/tmp/apkSneeze/{}".format(device_ip,device_port)):
-            print("    {}".format(line.decode('utf-8')))
+    for line in run("adb -s {}:{} pull /data/local/tmp/apkSneeze/{}".format(device_ip,device_port,DEFAULT_DATA_DIR)):
+    	print("    {}".format(line.decode('utf-8')))
     
     print("<*> Download done, check {} dir".format(DEFAULT_DATA_DIR))
     print("<*> Deleting app data dir from /data/local/tmp/apkSneeze/{} (mobile device)...".format(DEFAULT_DATA_DIR))
