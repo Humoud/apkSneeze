@@ -1,0 +1,2 @@
+# https://github.com/JeffLIrion/adb_shell
+adb-shell==0.1.3
