@@ -150,3 +150,31 @@ The tools defaults to the following:
 * adb port: 5555
 
 They can all be changed by specifying the appropriate parameter.
+
+```shell
+usage: apkSneeze.py [-h] [-apk] [-apk_name APK_NAME] [-apk_dl] [-data_dir_dl]
+                    [-pkg_name PKG_NAME] [-device_ip DEVICE_IP]
+                    [-device_port DEVICE_PORT] [-adbkey_file ADBKEY_FILE]
+                    [-adb_over_wifi]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -apk                  Process an apk file.
+  -apk_name APK_NAME    Name of the apk file to process.
+  -apk_dl               Download apk file from device. Requires params:
+                        pkg_name, device_ip, device_port, adbkey_file.
+  -data_dir_dl          Download app data directory from device. Requires
+                        params: pkg_name, device_ip, device_port, adbkey_file.
+  -pkg_name PKG_NAME    Application Package Name (ex: com.dev.app). This is
+                        required if you wish to download the apk file.
+  -device_ip DEVICE_IP  IP Address of the testing device.
+  -device_port DEVICE_PORT
+                        Port number the testing device is listening on.
+  -adbkey_file ADBKEY_FILE
+                        Location of the adbkey file (ex:
+                        /home/user/.android/adbkey).
+  -adb_over_wifi        Setup adb over wifi automatically. You must provide
+                        the IP address of the device and have it connected via
+                        USB. You can set a custom port using param
+                        device_port.
+```
