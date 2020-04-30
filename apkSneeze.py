@@ -206,7 +206,7 @@ def setup_adb_over_wifi(device_ip, device_port):
             print("  > {}".format(line.decode('utf-8')))
     print("\nYou can test if everything is working by seeing if you can get a shell: adb -s {}:{} shell".format(device_ip, device_port))
 
-def setup_http_proxy(device_ip, device_port, proxy_ip_port):
+def setup_http_proxy(adbkey_path, device_ip, device_port, proxy_ip_port):
     print("Configuring the device the use HTTP proxy: {}".format(proxy_ip_port))
     with open(adbkey_path) as f:
         priv = f.read()
@@ -216,7 +216,7 @@ def setup_http_proxy(device_ip, device_port, proxy_ip_port):
     
     run("adb -s {}:{} shell settings put global http_proxy {}".format(device_ip,device_port,proxy_ip_port))
 
-def remove_http_proxy(device_ip, device_port):
+def remove_http_proxy(adbkey_path, device_ip, device_port):
     print("Removing HTTP proxy from test device settings (if u face issues restart the device, sry)")
     with open(adbkey_path) as f:
         priv = f.read()
@@ -236,7 +236,7 @@ if __name__ == "__main__":
 | | | || |   | |\  \ /\__/ / |\  || |___| |___./ /___| |___ 
 \_| |_/\_|   \_| \_/ \____/\_| \_/\____/\____/\_____/\____/
 
-v2.1.0
+v2.0.0
 ============================================================
     '''
     print(logo)
@@ -295,10 +295,11 @@ v2.1.0
     if args.adb_over_wifi:
         setup_adb_over_wifi(args.device_ip, args.device_port)
     
-    if args.set_http_proxy:
-        setup_http_proxy(args.device_ip, args.device_port, args.set_http_proxy)
+   if args.set_http_proxy:
+        setup_http_proxy(args.adbkey_file, args.device_ip, args.device_port, args.set_http_proxy)
+
     if args.unset_http_proxy:
-        remove_http_proxy(args.device_ip, args.device_port)
+        remove_http_proxy(args.adbkey_file, args.device_ip, args.device_port)
 
     if args.apk_dl:
         get_apk_file(args.adbkey_file,args.device_ip,args.device_port,args.pkg_name)
