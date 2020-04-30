@@ -214,7 +214,7 @@ def setup_http_proxy(adbkey_path, device_ip, device_port, proxy_ip_port):
     device = AdbDeviceTcp(device_ip, device_port, default_timeout_s=9.)
     device.connect(rsa_keys=[signer], auth_timeout_s=0.1)
     
-    run("adb -s {}:{} shell settings put global http_proxy {}".format(device_ip,device_port,proxy_ip_port))
+    device.shell("settings put global http_proxy {}".format(proxy_ip_port))
 
 def remove_http_proxy(adbkey_path, device_ip, device_port):
     print("Removing HTTP proxy from test device settings (if u face issues restart the device, sry)")
@@ -224,7 +224,7 @@ def remove_http_proxy(adbkey_path, device_ip, device_port):
     device = AdbDeviceTcp(device_ip, device_port, default_timeout_s=9.)
     device.connect(rsa_keys=[signer], auth_timeout_s=0.1)
     
-    run("adb -s {}:{} shell settings put global http_proxy :0".format(device_ip,device_port))
+    device.shell("settings put global http_proxy :0")
 
 if __name__ == "__main__":
     logo = '''
