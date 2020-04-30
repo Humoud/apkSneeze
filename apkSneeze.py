@@ -296,9 +296,9 @@ v2.1.0
         setup_adb_over_wifi(args.device_ip, args.device_port)
     
     if args.set_http_proxy:
-        setup_http_proxy()
+        setup_http_proxy(args.device_ip, args.device_port, args.set_http_proxy)
     if args.unset_http_proxy:
-        remove_http_proxy()
+        remove_http_proxy(args.device_ip, args.device_port)
 
     if args.apk_dl:
         get_apk_file(args.adbkey_file,args.device_ip,args.device_port,args.pkg_name)
