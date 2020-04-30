@@ -295,7 +295,7 @@ v2.0.0
     if args.adb_over_wifi:
         setup_adb_over_wifi(args.device_ip, args.device_port)
     
-   if args.set_http_proxy:
+    if args.set_http_proxy:
         setup_http_proxy(args.adbkey_file, args.device_ip, args.device_port, args.set_http_proxy)
 
     if args.unset_http_proxy:
