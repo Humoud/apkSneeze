@@ -28,6 +28,9 @@ parser.add_argument('-device_port', default=5555, help='Port number the testing 
 parser.add_argument('-adbkey_file', default=str(Path.home())+'/.android/adbkey', help='Location of the adbkey file (ex: /home/user/.android/adbkey).')
 parser.add_argument('-adb_over_wifi', dest='adb_over_wifi', action='store_true', help='Setup adb over wifi automatically. You must provide the IP address of the device and have it connected via USB. You can set a custom port using param device_port.')
 parser.set_defaults(adb_over_wifi=False)
+parser.add_argument('-set_http_proxy', default=None, help='Configure test device to use an HTTP proxy. Pass prameter as IP:PORT.')
+parser.add_argument('-unset_http_proxy', dest='unset_http_proxy', action='store_true', help='Remove the HTTP proxy from the test device\'s configuration. (In some cases a device reboot is required. The configuration is set in the device\'s env vars).')
+parser.set_defaults(unset_http_proxy=False)
 args = parser.parse_args()
 ######
 ### Lists related detecting interesting entries
@@ -203,6 +206,25 @@ def setup_adb_over_wifi(device_ip, device_port):
             print("  > {}".format(line.decode('utf-8')))
     print("\nYou can test if everything is working by seeing if you can get a shell: adb -s {}:{} shell".format(device_ip, device_port))
 
+def setup_http_proxy(device_ip, device_port, proxy_ip_port):
+    print("Configuring the device the use HTTP proxy: {}".format(proxy_ip_port))
+    with open(adbkey_path) as f:
+        priv = f.read()
+    signer = PythonRSASigner('', priv)
+    device = AdbDeviceTcp(device_ip, device_port, default_timeout_s=9.)
+    device.connect(rsa_keys=[signer], auth_timeout_s=0.1)
+    
+    run("adb -s {}:{} shell settings put global http_proxy {}".format(device_ip,device_port,proxy_ip_port))
+
+def remove_http_proxy(device_ip, device_port):
+    print("Removing HTTP proxy from test device settings (if u face issues restart the device, sry)")
+    with open(adbkey_path) as f:
+        priv = f.read()
+    signer = PythonRSASigner('', priv)
+    device = AdbDeviceTcp(device_ip, device_port, default_timeout_s=9.)
+    device.connect(rsa_keys=[signer], auth_timeout_s=0.1)
+    
+    run("adb -s {}:{} shell settings put global http_proxy :0".format(device_ip,device_port))
 
 if __name__ == "__main__":
     logo = '''
@@ -214,25 +236,55 @@ if __name__ == "__main__":
 | | | || |   | |\  \ /\__/ / |\  || |___| |___./ /___| |___ 
 \_| |_/\_|   \_| \_/ \____/\_| \_/\____/\____/\_____/\____/
 
-v2.0.0
+v2.1.0
 ============================================================
     '''
     print(logo)
+    config_msg = "Using Settings:\n"
     
-    print("Using Settings:\n\
-        +> Process apk file: {}\n\
-            > Target apk file name: {}\n\n\
-        +> Setup ADB over WiFi: {}\n\
-        +> Download apk file: {}\n\
-        +> Download app data directory: {}\n\
-        >> Settings shared for adb setup and apk\data download:\n\
+    if args.apk:
+        config_msg += "+> Process apk file: {}\n\
+            > Target apk file name: {}\n\n".format(args.apk, args.apk_name)
+    if args.adb_over_wifi:
+        config_msg += "+> Setup ADB over WiFi: {}\n".format(args.adb_over_wifi)
+    if args.apk_dl:
+        config_msg += "+> Download apk file: {}\n".format(args.apk_dl)
+    if args.data_dir_dl:
+        config_msg += "+> Download app data directory: {}\n".format(args.data_dir_dl)
+    if args.set_http_proxy:
+        config_msg += "+> Configure HTTP Proxy: {}\n".format(args.set_http_proxy)
+    if args.set_http_proxy is not None and len(args.set_http_proxy.split(':')) != 2:
+        print("You seem to have passes an incorrect value for the HTTP proxy.\nKindly pass it as IP:Port. Ex: 192.168.1.2:8080\n")
+        sys.exit()
+    if args.unset_http_proxy:
+        config_msg += "+> Unset HTTP Proxy: {}\n".format(args.unset_http_proxy)   
+    if args.adb_over_wifi or args.apk_dl or args.data_dir_dl or args.unset_http_proxy or args.set_http_proxy:
+        config_msg += ">> Settings for: adb WiFi, apk\data DL, HTTP proxy:\n\
             >> ADBKey file location: {}\n\
             >> Test device IP address: {}\n\
-            >> Test device port: {}\n\
-            >> Target package name: {}".format(args.apk, args.apk_name, args.adb_over_wifi, args.apk_dl, args.data_dir_dl, args.adbkey_file, args.device_ip, args.device_port, args.pkg_name))
+            >> Test device port: {}\n".format(args.adbkey_file, args.device_ip, args.device_port)
+    if args.apk_dl or args.data_dir_dl:
+        # adding spaces to match alignment of text printed above
+        config_msg += "            >> Target package name: {}".format(args.pkg_name)
+ 
 
-    if args.apk is False and args.apk_dl is False and args.data_dir_dl is False and args.adb_over_wifi is False:
-        print("Nothing to do. Please specify some arguments.")
+    print(config_msg)
+
+    if args.apk is False and args.apk_dl is False and args.data_dir_dl is False and args.adb_over_wifi is False and args.set_http_proxy is None and args.unset_http_proxy is False:
+        help_msg=('Nothing to do. Please specify some arguments.\n'
+        'Example 1:\n'
+        'Setup the ADB over WiFi so that you can run upcoming commands over WiFi, no need for wires.\n'
+        '\t/apkSneeze.py -adb_over_wifi -device_ip 192.168.1.114\n'
+        '\nExample 2, If you are starting your analyses or PT fresh, and want to do multiple things at once:\n'
+        '\t./apkSneeze.py -adb_over_wifi -device_ip 192.168.1.114 -apk_dl -pkg_name com.dev.test.example -apk\n'
+        'This will setup ADB over WiFi. Download the apk file from the device. Then decompile the downloaded apk file.\n'
+        '\nExample 3:\n'
+        '\t./apkSneeze.py -adb_over_wifi -device_ip 192.168.1.114 -set_http_proxy 192.168.1.10:8080\n'
+        'This will configure the test device 192.168.1.114 to use HTTP proxy running on 192.168.1.10 on port 8080, after setting up ADB over WiFi\n'
+        '\nExample 4:\n'
+        '\t./apkSneeze.py -device_ip 192.168.1.114 -unset_http_proxy\n'
+        'This will remove the proxy configuration from the test device 192.168.1.114. Here we are assuming you already configured ADB over WiFi.')
+        print(help_msg)
         sys.exit()
 
     # User confirmation
@@ -242,6 +294,11 @@ v2.0.0
 
     if args.adb_over_wifi:
         setup_adb_over_wifi(args.device_ip, args.device_port)
+    
+    if args.set_http_proxy:
+        setup_http_proxy()
+    if args.unset_http_proxy:
+        remove_http_proxy()
 
     if args.apk_dl:
         get_apk_file(args.adbkey_file,args.device_ip,args.device_port,args.pkg_name)
@@ -267,4 +324,3 @@ v2.0.0
     
     
     print("Done!")
-
